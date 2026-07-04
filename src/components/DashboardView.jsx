@@ -45,7 +45,7 @@ export default function DashboardView({
     leads.forEach(lead => {
       if (lead.state) statesSet.add(lead.state.trim());
       if (lead.type) typesSet.add(lead.type.trim());
-      
+
       const tierVal = lead.icp_tier || lead.tier;
       if (tierVal) tiersSet.add(tierVal.trim());
     });
@@ -70,16 +70,16 @@ export default function DashboardView({
         const website = (lead.website || '').toLowerCase();
         const companySize = (lead.company_size_category || '').toLowerCase();
         const email = (lead.email || '').toLowerCase();
-        
-        const matches = 
-          name.includes(query) || 
-          district.includes(query) || 
-          state.includes(query) || 
-          principal.includes(query) || 
+
+        const matches =
+          name.includes(query) ||
+          district.includes(query) ||
+          state.includes(query) ||
+          principal.includes(query) ||
           website.includes(query) ||
           companySize.includes(query) ||
           email.includes(query);
-          
+
         if (!matches) return false;
       }
 
@@ -114,16 +114,16 @@ export default function DashboardView({
 
     // Define all 14 schema columns to export
     const headers = [
-      'id', 'name', 'state', 'district', 'type', 'board', 
-      'student_count', 'company_size_category', 'website', 
+      'id', 'name', 'state', 'district', 'type', 'board',
+      'student_count', 'company_size_category', 'website',
       'principal_name', 'email', 'phone', 'icp_score', 'icp_tier'
     ];
-    
+
     const csvRows = [];
-    
+
     // Add headers
     csvRows.push(headers.join(','));
-    
+
     // Add records
     for (const lead of filteredLeads) {
       const values = headers.map(header => {
@@ -142,7 +142,7 @@ export default function DashboardView({
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', `kalnet_filtered_leads_${new Date().toISOString().split('T')[0]}.csv`);
@@ -155,12 +155,12 @@ export default function DashboardView({
   const metrics = useMemo(() => {
     const total = filteredLeads.length;
     const withEmail = filteredLeads.filter(l => l.email && l.email.trim() !== '').length;
-    
+
     // Average Student Count
     const studentLeads = filteredLeads.filter(l => l.student_count !== null && l.student_count !== undefined && String(l.student_count).trim() !== '');
     const sumStudents = studentLeads.reduce((acc, l) => acc + Number(l.student_count), 0);
     const avgStudents = studentLeads.length ? Math.round(sumStudents / studentLeads.length) : 0;
-    
+
     // Unique States Count
     const uniqueStates = new Set(filteredLeads.map(l => l.state).filter(Boolean));
     const statesCount = uniqueStates.size;
@@ -183,6 +183,42 @@ export default function DashboardView({
 
   return (
     <div className="space-y-6">
+      {/* Summary Cards Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {/* Total Leads */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">Total Leads</p>
+          <h3 className="text-3xl font-black text-blue-600 m-0 mt-1 select-none">
+            {metrics.total.toLocaleString()}
+          </h3>
+        </div>
+
+        {/* With Email */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">With Email</p>
+          <h3 className="text-3xl font-black text-slate-800 m-0 mt-1 select-none">
+            {metrics.withEmail.toLocaleString()}
+          </h3>
+        </div>
+
+        {/* Avg Students */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">Avg Students</p>
+          <h3 className="text-3xl font-black text-slate-800 m-0 mt-1 select-none">
+            {metrics.avgStudents.toLocaleString()}
+          </h3>
+        </div>
+
+        {/* States */}
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">States</p>
+          <h3 className="text-3xl font-black text-slate-800 m-0 mt-1 select-none">
+            {metrics.statesCount}
+          </h3>
+        </div>
+
+      </div>
       {/* Search & Filter Form Card */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
@@ -200,7 +236,7 @@ export default function DashboardView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           {/* Real-time Search Input */}
           <div className="flex flex-col gap-1.5">
             <label htmlFor="search" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -316,42 +352,7 @@ export default function DashboardView({
         </div>
       )}
 
-      {/* Summary Cards Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* Total Leads */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">Total Leads</p>
-          <h3 className="text-3xl font-black text-blue-600 m-0 mt-1 select-none">
-            {metrics.total.toLocaleString()}
-          </h3>
-        </div>
 
-        {/* With Email */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">With Email</p>
-          <h3 className="text-3xl font-black text-slate-800 m-0 mt-1 select-none">
-            {metrics.withEmail.toLocaleString()}
-          </h3>
-        </div>
-
-        {/* Avg Students */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">Avg Students</p>
-          <h3 className="text-3xl font-black text-slate-800 m-0 mt-1 select-none">
-            {metrics.avgStudents.toLocaleString()}
-          </h3>
-        </div>
-
-        {/* States */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider m-0">States</p>
-          <h3 className="text-3xl font-black text-slate-800 m-0 mt-1 select-none">
-            {metrics.statesCount}
-          </h3>
-        </div>
-
-      </div>
 
       {/* Main Leads Table */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -406,15 +407,14 @@ export default function DashboardView({
                   {filteredLeads.map((lead) => {
                     const isExpanded = !!expandedRows[lead.id];
                     const tierVal = lead.icp_tier || lead.tier;
-                    
+
                     return (
                       <React.Fragment key={lead.id}>
                         {/* Table Row */}
-                        <tr 
+                        <tr
                           onClick={() => toggleRow(lead.id)}
-                          className={`hover:bg-slate-50/70 transition-colors cursor-pointer select-none ${
-                            isExpanded ? 'bg-slate-50/40' : ''
-                          }`}
+                          className={`hover:bg-slate-50/70 transition-colors cursor-pointer select-none ${isExpanded ? 'bg-slate-50/40' : ''
+                            }`}
                         >
                           <td className="px-6 py-4 text-center">
                             {isExpanded ? (
@@ -431,11 +431,10 @@ export default function DashboardView({
                           <td className="px-6 py-4 text-xs text-slate-600 truncate">{lead.district || '-'}</td>
                           <td className="px-6 py-4 text-xs">
                             {lead.type ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                lead.type.toLowerCase() === 'govt' 
-                                  ? 'bg-slate-100 text-slate-700 border border-slate-200' 
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${lead.type.toLowerCase() === 'govt'
+                                  ? 'bg-slate-100 text-slate-700 border border-slate-200'
                                   : 'bg-indigo-50 text-indigo-700 border border-indigo-150'
-                              }`}>
+                                }`}>
                                 {lead.type}
                               </span>
                             ) : '-'}
@@ -447,11 +446,11 @@ export default function DashboardView({
                           <td className="px-6 py-4 text-xs text-slate-600 truncate">{lead.company_size_category || '-'}</td>
                           <td className="px-6 py-4 text-xs text-slate-600 truncate">
                             {lead.website ? (
-                              <a 
-                                href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                onClick={(e) => e.stopPropagation()} 
+                              <a
+                                href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
                                 className="text-blue-600 hover:underline font-semibold"
                               >
                                 {lead.website}
@@ -461,9 +460,9 @@ export default function DashboardView({
                           <td className="px-6 py-4 text-xs text-slate-600 truncate">{lead.principal_name || '-'}</td>
                           <td className="px-6 py-4 text-xs font-medium text-slate-600 truncate">
                             {lead.email ? (
-                              <a 
-                                href={`mailto:${lead.email}`} 
-                                onClick={(e) => e.stopPropagation()} 
+                              <a
+                                href={`mailto:${lead.email}`}
+                                onClick={(e) => e.stopPropagation()}
                                 className="text-blue-600 hover:text-blue-750 underline"
                               >
                                 {lead.email}
@@ -490,7 +489,7 @@ export default function DashboardView({
                           <tr>
                             <td colSpan={15} className="bg-slate-50/50 px-8 py-5 border-t border-b border-slate-200/80">
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
-                                
+
                                 <div>
                                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                                     Institution Details

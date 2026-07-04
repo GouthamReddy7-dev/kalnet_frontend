@@ -18,7 +18,7 @@ function App() {
   const [selectedTier, setSelectedTier] = useState('');
   const [selectedHasEmail, setSelectedHasEmail] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'https://kalnet-dashboard-api-3.onrender.com/leads';
+  const API_URL = import.meta.env.URL_API || 'https://kalnet-dashboard-api-3.onrender.com/leads';
 
   // Fetch leads from database
   const fetchLeads = async () => {
@@ -141,7 +141,7 @@ function App() {
               {currentHeader.description}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {loading ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">

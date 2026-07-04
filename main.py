@@ -142,12 +142,21 @@ async def upload_leads(
 
     records_to_insert = []
 
-    # Case 1: CSV File Upload
+    # Case 1: CSV or Excel File Upload
     if file is not None:
         try:
             contents = await file.read()
-            # Read CSV using pandas
-            df = pd.read_csv(io.BytesIO(contents))
+            filename = file.filename.lower() if file.filename else ""
+            
+            # Read CSV or Excel depending on extension/content-type
+            if filename.endswith(('.xlsx', '.xls')) or file.content_type in [
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel"
+            ]:
+                # Note: requires openpyxl package to read xlsx
+                df = pd.read_excel(io.BytesIO(contents))
+            else:
+                df = pd.read_csv(io.BytesIO(contents))
             
             # Map common headers to DB columns
             # DB columns: name, district, state, type, icp_tier, email
@@ -173,7 +182,7 @@ async def upload_leads(
             records_to_insert = df_filtered.to_dict(orient="records")
             
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Failed to parse CSV: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
 
     # Case 2: JSON Payload
     elif leads_json is not None:

@@ -18,7 +18,7 @@ function App() {
   const [selectedTier, setSelectedTier] = useState('');
   const [selectedHasEmail, setSelectedHasEmail] = useState(false);
 
-  const API_URL = import.meta.env.URL_API || 'https://kalnet-dashboard-api-3.onrender.com/leads';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://kalnet-dashboard-api-3.onrender.com/leads';
 
   // Fetch leads from database
   const fetchLeads = async () => {

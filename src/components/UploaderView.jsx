@@ -236,25 +236,41 @@ export default function UploaderView({ onUploadSuccess }) {
         // tier -> icp_tier
         const dbMappedLeads = parsedData.rows.map(row => {
           const mapped = {};
-          Object.keys(row).forEach(key => {
-            const lowerKey = key.toLowerCase().replace(/[\s_-]/g, '');
-            if (['name', 'schoolname', 'institutionname', 'search'].includes(lowerKey)) {
-              mapped['name'] = row[key];
-            } else if (['district', 'dist'].includes(lowerKey)) {
-              mapped['district'] = row[key];
-            } else if (['state'].includes(lowerKey)) {
-              mapped['state'] = row[key];
-            } else if (['type', 'schooltype'].includes(lowerKey)) {
-              mapped['type'] = row[key];
-            } else if (['tier', 'icptier'].includes(lowerKey)) {
-              mapped['icp_tier'] = row[key];
-            } else if (['email', 'emailaddress'].includes(lowerKey)) {
-              mapped['email'] = row[key];
-            } else {
-              // keep as is
-              mapped[key] = row[key];
+          
+          // Define standard column variants mappings
+          const columnMapping = {
+            name: ['schoolname', 'institutionname', 'aishecodename', 'name', 'search'],
+            state: ['state'],
+            district: ['district'],
+            type: ['collegetype', 'schooltype', 'type'],
+            board: ['manegement', 'management', 'universityname', 'board'],
+            website: ['website'],
+            student_count: ['studentcount', 'student_count'],
+            company_size_category: ['companysize', 'company_size', 'companysizecategory', 'company_size_category'],
+            principal_name: ['principalname', 'principal_name', 'principal'],
+            email: ['email', 'emailaddress', 'email_address'],
+            phone: ['phone', 'phoneno', 'phone_no', 'phonenumber', 'phone_number'],
+            icp_score: ['icpscore', 'icp_score'],
+            icp_tier: ['icptier', 'icp_tier', 'tier']
+          };
+
+          // Extract values using whitelisted mapping to avoid duplicate columns
+          Object.keys(columnMapping).forEach(dbCol => {
+            const variants = columnMapping[dbCol];
+            const foundKey = Object.keys(row).find(key => {
+              const normalized = key.toLowerCase().replace(/[\s_-]/g, '');
+              return variants.includes(normalized);
+            });
+            if (foundKey && row[foundKey] !== undefined) {
+              const val = row[foundKey];
+              if (dbCol === 'student_count' || dbCol === 'icp_score') {
+                mapped[dbCol] = val !== '' ? Number(val) || null : null;
+              } else {
+                mapped[dbCol] = val;
+              }
             }
           });
+
           return mapped;
         });
 

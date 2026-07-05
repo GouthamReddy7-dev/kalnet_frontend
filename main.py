@@ -158,22 +158,81 @@ async def upload_leads(
             else:
                 df = pd.read_csv(io.BytesIO(contents))
             
-            # Map common headers to DB columns
-            # DB columns: name, district, state, type, icp_tier, email
+            # Map common headers to DB columns (using normalized lowercase keys)
             column_mapping = {
+                # Name mapping
                 'school_name': 'name',
                 'institution_name': 'name',
+                'aishe code name': 'name',
+                'name': 'name',
                 'search': 'name',
+                
+                # State mapping
+                'state': 'state',
+                
+                # District mapping
+                'district': 'district',
+                
+                # Type mapping
+                'college type': 'type',
                 'school_type': 'type',
                 'schooltype': 'type',
-                'tier': 'icp_tier',
-                'icptier': 'icp_tier',
+                'type': 'type',
+                
+                # Board / affiliation mapping
+                'manegement': 'board',
+                'management': 'board',
+                'university name': 'board',
+                'board': 'board',
+                
+                # Website mapping
+                'website': 'website',
+                
+                # Student count mapping
+                'student_count': 'student_count',
+                'student count': 'student_count',
+                
+                # Company size mapping
+                'company_size_category': 'company_size_category',
+                'company size': 'company_size_category',
+                
+                # Principal name mapping
+                'principal_name': 'principal_name',
+                'principal name': 'principal_name',
+                
+                # Email mapping
+                'email': 'email',
+                
+                # Phone mapping
+                'phone': 'phone',
+                'phone number': 'phone',
+                
+                # ICP Score mapping
+                'icp_score': 'icp_score',
+                
+                # ICP Tier mapping
+                'icp_tier': 'icp_tier',
+                'tier': 'icp_tier'
             }
-            # Rename columns if they exist in mapping
-            df = df.rename(columns=column_mapping)
+            
+            # Normalize df columns to strip whitespace
+            df.columns = [str(col).strip() for col in df.columns]
+            
+            # Map columns case-insensitively, avoiding duplicate destination columns
+            lowercase_cols = {col.lower(): col for col in df.columns}
+            rename_dict = {}
+            for key_variant, db_col in column_mapping.items():
+                if key_variant in lowercase_cols and db_col not in rename_dict.values():
+                    rename_dict[lowercase_cols[key_variant]] = db_col
+            
+            df = df.rename(columns=rename_dict)
             
             # Keep only the valid database columns that exist in the DataFrame
-            valid_cols = ['name', 'district', 'state', 'type', 'icp_tier', 'email']
+            valid_cols = [
+                'name', 'state', 'district', 'type', 'board', 
+                'student_count', 'company_size_category', 'website', 
+                'principal_name', 'email', 'phone', 'icp_score', 'icp_tier'
+            ]
             cols_to_keep = [col for col in valid_cols if col in df.columns]
             df_filtered = df[cols_to_keep]
             

@@ -239,6 +239,7 @@ export default function UploaderView({ onUploadSuccess }) {
           
           // Define standard column variants mappings
           const columnMapping = {
+            id: ['aishecode', 'aishecodename', 'id'],
             name: ['schoolname', 'institutionname', 'aishecodename', 'name', 'search'],
             state: ['state'],
             district: ['district'],
@@ -263,7 +264,10 @@ export default function UploaderView({ onUploadSuccess }) {
             });
             if (foundKey && row[foundKey] !== undefined) {
               const val = row[foundKey];
-              if (dbCol === 'student_count' || dbCol === 'icp_score') {
+              if (dbCol === 'id') {
+                const digits = String(val).replace(/\D/g, '');
+                mapped[dbCol] = digits ? Number(digits) : null;
+              } else if (dbCol === 'student_count' || dbCol === 'icp_score') {
                 mapped[dbCol] = val !== '' ? Number(val) || null : null;
               } else {
                 mapped[dbCol] = val;
@@ -285,7 +289,16 @@ export default function UploaderView({ onUploadSuccess }) {
       }
 
       if (!response.ok) {
-        throw new Error(`Server returned error code ${response.status}: ${response.statusText}`);
+        let errorMsg = `Server returned error code ${response.status}: ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData.detail) errorMsg = errData.detail;
+          else if (errData.error) errorMsg = errData.error;
+          else if (errData.message) errorMsg = errData.message;
+        } catch (e) {
+          // not JSON
+        }
+        throw new Error(errorMsg);
       }
 
       const resData = await response.json();
